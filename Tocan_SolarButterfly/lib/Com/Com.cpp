@@ -26,7 +26,6 @@ void Device::begin() {
     esp_now_register_recv_cb(onReceive);
 }
 
-
 void Device::sendMessage(int panelsActivated) {
     uint8_t message[sizeof(panelsActivated)]; // Create a byte buffer for the integer
     memcpy(message, &panelsActivated, sizeof(panelsActivated)); // Copy the integer into the buffer
@@ -34,15 +33,15 @@ void Device::sendMessage(int panelsActivated) {
     esp_err_t result = esp_now_send(peerAddress, message, sizeof(panelsActivated)); // Send the buffer
 
     if (result == ESP_OK) {
-        Serial.println("Message sent successfully");
+        //Serial.println("Message sent successfully");
     } else {
         Serial.println("Error sending the message");
     }
 }
 
 void Device::onSend(const uint8_t *mac_addr, esp_now_send_status_t status) {
-    Serial.print("Send status: ");
-    Serial.println(status == ESP_NOW_SEND_SUCCESS ? "Success" : "Fail");
+    //Serial.print("Send status: ");
+    //Serial.println(status == ESP_NOW_SEND_SUCCESS ? "Success" : "Fail");
 }
 
 void Device::onReceive(const uint8_t *mac_addr, const uint8_t *data, int len) {
@@ -57,7 +56,6 @@ void Device::onReceive(const uint8_t *mac_addr, const uint8_t *data, int len) {
     Serial.print("Received value: ");
     Serial.println(receivedValue);
 
-    // Update the threshold variable with the received value
     threshold = receivedValue;
 
     Serial.print("Updated threshold to: ");

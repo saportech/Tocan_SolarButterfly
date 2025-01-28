@@ -6,7 +6,7 @@
 #include <esp_now.h>
 #include <WiFi.h>
 
-#define CONTROL_MAC_ADDRESS {0x24, 0x6F, 0x28, 0xAA, 0xBB, 0xCC} // MAC address of the control ESP32
+#define CONTROL_MAC_ADDRESS {0x8C, 0x4F, 0x00, 0x29, 0x24, 0xF0} // MAC address of the control ESP32
 
 class Device {
 private:

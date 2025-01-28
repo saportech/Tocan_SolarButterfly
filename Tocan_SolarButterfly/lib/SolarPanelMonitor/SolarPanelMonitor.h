@@ -3,12 +3,10 @@
 
 #include <Arduino.h>
 
-#define SOLAR_PANELS 2 // Number of solar panels
-#define THRESHOLD 2500 // ADC threshold value
-#define SAMPLE_SIZE 100 // Number of samples for the LPF
+#define SOLAR_PANELS 2
+#define SAMPLE_SIZE 100
 
-// Predefined pins for solar panels
-const int panelPins[SOLAR_PANELS] = {33, 32};//, 34, 35, 36};
+const int panelPins[SOLAR_PANELS] = {32, 35};//, 34, 39, 36};
 
 class SolarPanelMonitor {
 private:
@@ -16,9 +14,10 @@ private:
     int sampleIndex[SOLAR_PANELS];
     int samples[SOLAR_PANELS][SAMPLE_SIZE];
     int solarThreshold;
+    bool panelStatuses[SOLAR_PANELS];
 public:
     void begin();
-    int checkPanels();
+    void checkPanels(float filteredVals[], bool statuses[], int &panelsExceeded);
     void setThreshold(int threshold);
 };
 

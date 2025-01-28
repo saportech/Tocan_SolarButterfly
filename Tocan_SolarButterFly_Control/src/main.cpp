@@ -1,52 +1,88 @@
 #include <Arduino.h>
 #include "ComControl.h"
 #include "Motor.h"
+#include "OLED.h"
 
 ComControl comControl;
 Motor motor;
+OLED oled;
 
-// Function Declaration
-void sendAnalogData();
+#define SOLAR_SENSITIVITY_PIN 33
+
+float filteredValue = 0.0;
+const float alpha = 0.1;
+
+float sampleAndFilter();
+void displayMotorStatus(int mappedValue);
 
 void setup() {
     Serial.begin(115200);
     Serial.println("Control ESP32 Ready");
     comControl.begin();
-    pinMode(33, INPUT); // Analog input pin
+    motor.begin();
+    oled.begin();
+
+    filteredValue = analogRead(SOLAR_SENSITIVITY_PIN); // Initialize filter
 }
 
 void loop() {
+    static int previousValue = -2; // Tracks the previous value
     static unsigned long lastSendTime = 0;
-    const unsigned long SEND_INTERVAL = 1000; // Send data every 1 second
+    const unsigned long SEND_INTERVAL = 100;
 
-    // Handle solar panel activation
+    filteredValue = sampleAndFilter();
+
     int solarPanelsActivated = comControl.checkInput();
-    if (solarPanelsActivated > 0) {
-        Serial.println("Solar panels activated: " + String(solarPanelsActivated));
-        motor.setSpeed(solarPanelsActivated);
-    }
+    //Serial.println("Solar Panels Activated: " + String(solarPanelsActivated));
 
-    // Send analog input data
+    if (solarPanelsActivated <= 0) {
+        motor.setOnOff(OFF);
+        motor.setSpeed(0);
+        if (previousValue > 0) {
+            Serial.println("Motor turned OFF and speed set to 0");
+        }
+    } else if (solarPanelsActivated > 0) {
+        if (previousValue <= 0) {
+            motor.setOnOff(ON);
+            motor.setSpeed(solarPanelsActivated);
+            Serial.println("Motor turned ON and speed set to: " + String(solarPanelsActivated));
+        } else if (solarPanelsActivated != previousValue) {
+            motor.setSpeed(solarPanelsActivated);
+            Serial.println("Motor speed updated to: " + String(solarPanelsActivated));
+        }
+    }
+    previousValue = solarPanelsActivated;
+
     if (millis() - lastSendTime >= SEND_INTERVAL) {
-        sendAnalogData();
+        int mappedValue = map(filteredValue, 0, 4095, 0, 4000);
+        comControl.sendMessage(mappedValue);
+        displayMotorStatus(mappedValue);
         lastSendTime = millis();
     }
 }
 
-void sendAnalogData() {
-    const int ANALOG_PIN = 33;        // Analog input pin
-    const int MIN_ANALOG_VALUE = 0;  // Minimum raw analog input value
-    const int MAX_ANALOG_VALUE = 4095; // Maximum raw analog input value
-    const int MIN_THRESHOLD = 0;     // Minimum threshold value
-    const int MAX_THRESHOLD = 4000;  // Maximum threshold value
+float sampleAndFilter() {
+    static unsigned long lastSample = millis();
+    const unsigned long SAMPLE_INTERVAL = 10;
 
-    int rawValue = analogRead(ANALOG_PIN); // Read raw analog input
-    int mappedValue = map(rawValue, MIN_ANALOG_VALUE, MAX_ANALOG_VALUE, MIN_THRESHOLD, MAX_THRESHOLD); // Map to threshold values
+    if (millis() - lastSample >= SAMPLE_INTERVAL) {
+        int rawValue = analogRead(SOLAR_SENSITIVITY_PIN);
+        filteredValue = (alpha * rawValue) + ((1 - alpha) * filteredValue);
+        lastSample = millis();
+    }
 
-    Serial.print("Analog input: ");
-    Serial.print(rawValue);
-    Serial.print(" | Mapped value: ");
-    Serial.println(mappedValue);
+    return filteredValue;
+}
 
-    comControl.sendMessage(mappedValue); // Send the mapped value using comControl
+void displayMotorStatus(int mappedValue) {
+    bool motorState = motor.getOnOff();
+    bool motorDirection = motor.getDirection();
+    int motorSpeed = motor.getSpeed();
+
+    String status = "State: " + String(motorState ? "OFF" : "ON") + "\n";
+    status += "Dir: " + String(motorDirection ? "FWD" : "REV") + "\n";
+    status += "Speed: " + String(motorSpeed) + "\n";
+    status += "Threshold: " + String(mappedValue);
+
+    oled.write(status);
 }

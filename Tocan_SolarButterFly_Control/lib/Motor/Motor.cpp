@@ -1,6 +1,6 @@
 #include "Motor.h"
 
-Motor::Motor() {}
+Motor::Motor() : currentOnOffState(OFF), currentDirection(FORWARD), currentSpeed(0) {}
 
 void Motor::begin() {
     pinMode(MOTOR_ON_OFF, OUTPUT);
@@ -15,14 +15,59 @@ void Motor::begin() {
 }
 
 void Motor::setOnOff(bool state) {
-    digitalWrite(MOTOR_ON_OFF, state ? LOW : HIGH);
+    digitalWrite(MOTOR_ON_OFF, state ? HIGH : LOW);
+    currentOnOffState = state;
 }
 
 void Motor::setDirection(bool direction) {
-    digitalWrite(MOTOR_DIRECTION, direction ? LOW : HIGH);
+    digitalWrite(MOTOR_DIRECTION, direction ? HIGH : LOW);
+    currentDirection = direction;
 }
 
-void Motor::setSpeed(uint8_t speed) {
-    uint8_t pwmValue = map(speed, 1, 5, 51, 255);
-    ledcWrite(0, pwmValue);
+void Motor::setSpeed(int speed) {
+    switch (speed) {
+        case 5:
+            ledcWrite(0, 62);
+            break;
+        case 4:
+            ledcWrite(0, 73);
+            break;
+        case 3:
+            ledcWrite(0, 76);
+            break;
+        case 2:
+            ledcWrite(0, 78);
+            break;
+        case 1:
+            ledcWrite(0, 81);
+            break;
+        case 0:
+            ledcWrite(0, 100);
+            break;
+        default:
+            Serial.println("Invalid PWM value");
+            return; // Exit if the value is invalid
+    }
+    currentSpeed = speed;
+}
+
+void Motor::runSpeeds() {
+    for (int i = 74; i <= 90; i++) {
+        ledcWrite(0, i);
+        //Serial.println(i);
+        currentSpeed = i;
+        delay(50);
+    }
+}
+
+bool Motor::getOnOff() const {
+    return currentOnOffState;
+}
+
+bool Motor::getDirection() const {
+    return currentDirection;
+}
+
+int Motor::getSpeed() const {
+    return currentSpeed;
 }
