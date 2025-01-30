@@ -9,7 +9,7 @@ void Motor::begin() {
 
     digitalWrite(MOTOR_ON_OFF, HIGH);
     digitalWrite(MOTOR_DIRECTION, HIGH);
-    ledcSetup(0, 5000, 8);
+    ledcSetup(0, 30000, 10);
     ledcAttachPin(MOTOR_SPEED, 0);
     setSpeed(0);
 }
@@ -27,22 +27,22 @@ void Motor::setDirection(bool direction) {
 void Motor::setSpeed(int speed) {
     switch (speed) {
         case 5:
-            ledcWrite(0, 62);
+            ledcWrite(0, 0);
             break;
         case 4:
-            ledcWrite(0, 73);
+            ledcWrite(0, 7);
             break;
         case 3:
-            ledcWrite(0, 76);
+            ledcWrite(0, 56);
             break;
         case 2:
-            ledcWrite(0, 78);
+            ledcWrite(0, 309);
             break;
         case 1:
-            ledcWrite(0, 81);
+            ledcWrite(0, 561);
             break;
         case 0:
-            ledcWrite(0, 100);
+            ledcWrite(0, 1023);
             break;
         default:
             Serial.println("Invalid PWM value");
@@ -52,11 +52,11 @@ void Motor::setSpeed(int speed) {
 }
 
 void Motor::runSpeeds() {
-    for (int i = 74; i <= 90; i++) {
+    for (int i = 6; i <= 7; i++) {
         ledcWrite(0, i);
-        //Serial.println(i);
+        Serial.println(i);
         currentSpeed = i;
-        delay(50);
+        delay(3000);
     }
 }
 

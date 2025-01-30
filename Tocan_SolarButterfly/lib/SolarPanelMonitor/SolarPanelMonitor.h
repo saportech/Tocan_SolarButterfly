@@ -3,10 +3,10 @@
 
 #include <Arduino.h>
 
-#define SOLAR_PANELS 2
+#define SOLAR_PANELS 5
 #define SAMPLE_SIZE 100
 
-const int panelPins[SOLAR_PANELS] = {32, 35};//, 34, 39, 36};
+const int panelPins[SOLAR_PANELS] = {32, 35, 34, 39, 36};
 
 class SolarPanelMonitor {
 private:

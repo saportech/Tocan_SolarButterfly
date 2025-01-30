@@ -26,6 +26,7 @@ void setup() {
 }
 
 void loop() {
+
     static int previousValue = -2; // Tracks the previous value
     static unsigned long lastSendTime = 0;
     const unsigned long SEND_INTERVAL = 100;
